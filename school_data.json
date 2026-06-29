@@ -1,0 +1,23 @@
+{
+    "Student": [
+        {
+            "name": "Prasidh",
+            "age": 18,
+            "email": " prasidhagarwal@gmail.com",
+            "roll": 37,
+            "grades": {
+                "Maths": 80.0
+            }
+        }
+    ],
+    "Teacher": [
+        {
+            "name": "Harsh",
+            "age": 25,
+            "email": " Harsh@gmail.com",
+            "subject": "CSE",
+            "emp_id": 576,
+            "grades": {}
+        }
+    ]
+}

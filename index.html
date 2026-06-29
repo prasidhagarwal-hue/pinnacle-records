@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Pinnacle — Student & Teacher Records</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy-deep:#161a33;
+    --navy:#222a52;
+    --slate:#4d5b8f;
+    --gold:#c9a227;
+    --gold-light:#e6c75c;
+    --paper:#f7f4ec;
+    --paper-dim:#ece7d8;
+    --ink:#1c1f2b;
+    --green:#3f7d4f;
+    --amber:#b07d1c;
+    --red:#a43c3c;
+    --radius:14px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background: var(--navy-deep);
+    background-image:
+      radial-gradient(circle at 15% 10%, rgba(201,162,39,0.08), transparent 40%),
+      radial-gradient(circle at 85% 90%, rgba(77,91,143,0.15), transparent 45%);
+    color: var(--ink);
+    font-family:'Inter', sans-serif;
+    min-height:100vh;
+    overflow-x:hidden;
+  }
+  h1,h2,h3,.display{ font-family:'Fraunces', serif; }
+  .mono{ font-family:'JetBrains Mono', monospace; }
+
+  /* ===================== INTRO ===================== */
+  #intro{
+    position:fixed; inset:0; z-index:999;
+    background: var(--navy-deep);
+    display:flex; align-items:center; justify-content:center;
+    perspective: 1400px;
+    transition: opacity 0.7s ease, visibility 0.7s ease;
+  }
+  #intro.hide{ opacity:0; visibility:hidden; pointer-events:none; }
+  .card3d{
+    width:380px; height:260px;
+    background: linear-gradient(160deg, var(--paper), var(--paper-dim));
+    border-radius: 10px;
+    box-shadow: 0 40px 80px rgba(0,0,0,0.55), 0 0 0 1px rgba(0,0,0,0.05);
+    transform: rotateX(60deg) rotateZ(-8deg) scale(0.4) translateZ(-200px);
+    opacity:0;
+    animation: popIn 1.8s cubic-bezier(.2,.9,.25,1.1) forwards;
+    position:relative;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:10px;
+    border-top: 6px solid var(--gold);
+  }
+  @keyframes popIn{
+    0%{ transform: rotateX(60deg) rotateZ(-8deg) scale(0.4) translateZ(-300px); opacity:0; }
+    55%{ transform: rotateX(8deg) rotateZ(2deg) scale(1.08) translateZ(140px); opacity:1; }
+    75%{ transform: rotateX(-2deg) rotateZ(-1deg) scale(1.0) translateZ(90px); }
+    100%{ transform: rotateX(0deg) rotateZ(0deg) scale(1) translateZ(60px); opacity:1; }
+  }
+  .card3d .seal{
+    width:54px; height:54px; border-radius:50%;
+    background: conic-gradient(from 90deg, var(--gold), var(--gold-light), var(--gold));
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Fraunces',serif; font-weight:700; color:var(--navy-deep); font-size:22px;
+    box-shadow: 0 8px 18px rgba(201,162,39,0.4);
+    opacity:0; animation: fadeUp 0.6s ease forwards 1.3s;
+  }
+  .card3d h1{
+    font-size: 26px; color: var(--navy-deep); letter-spacing:0.5px;
+    opacity:0; animation: fadeUp 0.6s ease forwards 1.55s;
+  }
+  .card3d p{
+    font-size:13px; color:var(--slate); text-align:center; max-width:300px; line-height:1.5;
+    opacity:0; animation: fadeUp 0.6s ease forwards 1.75s;
+  }
+  @keyframes fadeUp{
+    from{ opacity:0; transform: translateY(14px); }
+    to{ opacity:1; transform: translateY(0); }
+  }
+  #intro .skip{
+    position:absolute; bottom:36px; left:50%; transform:translateX(-50%);
+    color: rgba(247,244,236,0.55); font-size:12px; letter-spacing:1.5px; text-transform:uppercase;
+    cursor:pointer; border:1px solid rgba(247,244,236,0.25); padding:8px 16px; border-radius:30px;
+    opacity:0; animation: fadeUp 0.6s ease forwards 2.1s;
+    transition: all 0.2s;
+  }
+  #intro .skip:hover{ color:var(--gold-light); border-color: var(--gold-light); }
+
+  /* ===================== APP SHELL ===================== */
+  #app{ display:none; min-height:100vh; }
+  #app.show{ display:flex; }
+
+  .sidebar{
+    width:230px; flex-shrink:0; background: var(--navy);
+    background-image: linear-gradient(180deg, var(--navy), var(--navy-deep));
+    color: var(--paper);
+    padding: 28px 18px;
+    display:flex; flex-direction:column; gap:6px;
+    border-right: 1px solid rgba(255,255,255,0.06);
+  }
+  .brand{ display:flex; align-items:center; gap:10px; margin-bottom:34px; padding:0 6px;}
+  .brand .seal-sm{
+    width:34px;height:34px;border-radius:50%;
+    background: conic-gradient(from 90deg, var(--gold), var(--gold-light), var(--gold));
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Fraunces',serif; font-weight:700; color:var(--navy-deep); font-size:14px;
+  }
+  .brand span{ font-family:'Fraunces',serif; font-size:18px; font-weight:600; letter-spacing:0.3px;}
+
+  .nav-item{
+    display:flex; align-items:center; gap:12px;
+    padding:11px 14px; border-radius:10px; cursor:pointer;
+    color: rgba(247,244,236,0.65); font-size:14px; font-weight:500;
+    transition: all 0.18s; border:1px solid transparent;
+  }
+  .nav-item .ic{ width:18px; text-align:center; font-size:15px; }
+  .nav-item:hover{ background: rgba(255,255,255,0.05); color: var(--paper); }
+  .nav-item.active{
+    background: rgba(201,162,39,0.14);
+    color: var(--gold-light);
+    border-color: rgba(201,162,39,0.3);
+  }
+  .sidebar-footer{
+    margin-top:auto; font-size:11px; color: rgba(247,244,236,0.35);
+    padding:10px 6px; line-height:1.6;
+  }
+
+  .main{ flex:1; padding: 36px 44px; max-width:1100px; }
+  .page-head{ margin-bottom:28px; }
+  .page-head .eyebrow{
+    text-transform:uppercase; letter-spacing:2px; font-size:11px; color: var(--gold-light);
+    font-weight:600; margin-bottom:6px;
+  }
+  .page-head h2{ color: var(--paper); font-size:30px; font-weight:600; }
+  .page-head p.sub{ color: rgba(247,244,236,0.5); margin-top:6px; font-size:14px; }
+
+  .panel{ display:none; }
+  .panel.active{ display:block; animation: panelIn 0.4s ease; }
+  @keyframes panelIn{ from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);} }
+
+  .grid2{ display:grid; grid-template-columns: 1.1fr 1fr; gap:24px; align-items:start; }
+  @media (max-width: 880px){ .grid2{ grid-template-columns:1fr; } }
+
+  .card{
+    background: var(--paper);
+    border-radius: var(--radius);
+    padding: 26px;
+    box-shadow: 0 14px 34px rgba(0,0,0,0.28);
+    border-top: 4px solid var(--gold);
+  }
+  .card h3{ font-size:18px; margin-bottom:18px; color: var(--navy-deep); }
+
+  label{ display:block; font-size:12px; font-weight:600; color: var(--slate); margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;}
+  .field{ margin-bottom:16px; }
+  input, select{
+    width:100%; padding:11px 13px; border-radius:9px;
+    border:1.5px solid #ddd6c2; background:#ffffff; color:var(--ink);
+    font-family:'Inter',sans-serif; font-size:14px;
+    transition: border 0.15s, box-shadow 0.15s;
+  }
+  input:focus, select:focus{ outline:none; border-color: var(--gold); box-shadow: 0 0 0 3px rgba(201,162,39,0.15); }
+  input.search{ background:#ffffff; border:1.5px solid #e2dcc6; }
+  input::placeholder{ color:#b7b2a0; }
+
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    background: var(--navy-deep); color:var(--paper); border:none;
+    padding:12px 20px; border-radius:9px; font-weight:600; font-size:13.5px;
+    cursor:pointer; transition: all 0.18s; letter-spacing:0.2px;
+  }
+  .btn:hover{ background: var(--navy); transform: translateY(-1px); }
+  .btn.gold{ background: var(--gold); color: var(--navy-deep); }
+  .btn.gold:hover{ background: var(--gold-light); }
+  .btn.full{ width:100%; }
+
+  .msg{
+    margin-top:14px; padding:11px 14px; border-radius:9px; font-size:13px; font-weight:500;
+    display:none;
+  }
+  .msg.show{ display:block; }
+  .msg.ok{ background:rgba(63,125,79,0.12); color:var(--green); border:1px solid rgba(63,125,79,0.3); }
+  .msg.err{ background:rgba(164,60,60,0.1); color:var(--red); border:1px solid rgba(164,60,60,0.3); }
+
+  /* roster / table */
+  .roster-card{ background:var(--paper); border-radius: var(--radius); box-shadow: 0 14px 34px rgba(0,0,0,0.28); overflow:hidden; }
+  .roster-head{ display:flex; align-items:center; justify-content:space-between; padding:20px 24px 14px; }
+  .roster-head h3{ font-size:18px; color:var(--navy-deep); }
+  .count-pill{ background: var(--navy-deep); color:var(--gold-light); font-size:12px; padding:4px 12px; border-radius:20px; font-weight:600; }
+  table{ width:100%; border-collapse:collapse; }
+  thead th{
+    text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:0.6px;
+    color: var(--slate); padding:10px 24px; border-bottom:1px solid #e6e1cf;
+  }
+  tbody td{ padding:14px 24px; font-size:14px; border-bottom:1px solid #efebdd; color:var(--ink); }
+  tbody tr:hover{ background: rgba(201,162,39,0.06); }
+  tbody tr:last-child td{ border-bottom:none; }
+  .empty-row{ text-align:center; padding:40px; color:#a39d87; font-style:italic; }
+
+  .badge{
+    display:inline-flex; align-items:center; justify-content:center;
+    padding:3px 11px; border-radius:20px; font-size:12px; font-weight:700;
+    font-family:'JetBrains Mono', monospace;
+  }
+  .badge.A{ background:rgba(63,125,79,0.14); color:var(--green); }
+  .badge.B{ background:rgba(77,91,143,0.16); color:var(--slate); }
+  .badge.C{ background:rgba(176,125,28,0.16); color:var(--amber); }
+  .badge.F{ background:rgba(164,60,60,0.14); color:var(--red); }
+
+  .grade-chip{
+    display:inline-flex; align-items:center; gap:6px; padding:5px 10px 5px 5px;
+    border-radius:20px; background:#fff; border:1px solid #e6e1cf; font-size:12.5px; margin:3px;
+  }
+  .grade-chip .dot{ width:8px; height:8px; border-radius:50%; }
+
+  .detail-banner{
+    display:flex; align-items:center; gap:16px; padding:18px 22px; border-radius:12px;
+    background: linear-gradient(120deg, var(--navy), var(--slate)); color:var(--paper); margin-bottom:18px;
+  }
+  .avatar-letter{
+    width:48px;height:48px;border-radius:50%; background:var(--gold); color:var(--navy-deep);
+    display:flex; align-items:center; justify-content:center; font-family:'Fraunces',serif; font-weight:700; font-size:20px; flex-shrink:0;
+  }
+  .avg-ring{
+    width:78px; height:78px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    font-family:'Fraunces',serif; font-weight:700; font-size:20px; color:var(--navy-deep);
+    background: conic-gradient(var(--gold) calc(var(--pct) * 1%), #e9e3cf 0);
+    position:relative;
+  }
+  .avg-ring::after{
+    content:''; position:absolute; inset:8px; background:var(--paper); border-radius:50%;
+  }
+  .avg-ring span{ position:relative; z-index:1; }
+
+  ::-webkit-scrollbar{ width:10px; }
+  ::-webkit-scrollbar-thumb{ background: var(--slate); border-radius:10px; }
+</style>
+</head>
+<body>
+
+<!-- ===================== 3D INTRO ===================== -->
+<div id="intro">
+  <div class="card3d">
+    <div class="seal">PA</div>
+    <h1>Pinnacle Records</h1>
+    <p>A single ledger for every student, teacher, and grade — built for schools and tuition centres that want their records as organized as their classrooms.</p>
+  </div>
+  <div class="skip" id="skipIntro">Enter →</div>
+</div>
+
+<!-- ===================== APP ===================== -->
+<div id="app">
+
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="seal-sm">PA</div>
+      <span>Pinnacle</span>
+    </div>
+
+    <div class="nav-item active" data-panel="dashboard"><span class="ic">◆</span> Dashboard</div>
+    <div class="nav-item" data-panel="reg-student"><span class="ic">＋</span> Register Student</div>
+    <div class="nav-item" data-panel="reg-teacher"><span class="ic">＋</span> Register Teacher</div>
+    <div class="nav-item" data-panel="add-grade"><span class="ic">✎</span> Add Grade</div>
+    <div class="nav-item" data-panel="students"><span class="ic">▤</span> Student Roster</div>
+    <div class="nav-item" data-panel="teachers"><span class="ic">▤</span> Teacher Roster</div>
+
+    <div class="sidebar-footer">Pinnacle Records<br>Student & Teacher Management</div>
+  </aside>
+
+  <main class="main">
+
+    <!-- DASHBOARD -->
+    <section class="panel active" id="panel-dashboard">
+      <div class="page-head">
+        <div class="eyebrow">Overview</div>
+        <h2>Welcome back</h2>
+        <p class="sub">A quick look at who's on record today.</p>
+      </div>
+      <div class="grid2">
+        <div class="card">
+          <h3>Students</h3>
+          <p style="font-size:42px; font-family:'Fraunces',serif; color:var(--navy-deep);" id="statStudents">0</p>
+          <p style="color:var(--slate); font-size:13px;">registered so far</p>
+        </div>
+        <div class="card">
+          <h3>Teachers</h3>
+          <p style="font-size:42px; font-family:'Fraunces',serif; color:var(--navy-deep);" id="statTeachers">0</p>
+          <p style="color:var(--slate); font-size:13px;">on staff</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- REGISTER STUDENT -->
+    <section class="panel" id="panel-reg-student">
+      <div class="page-head">
+        <div class="eyebrow">New entry</div>
+        <h2>Register a Student</h2>
+        <p class="sub">Roll numbers must be unique. Email needs an "@" and a ".".</p>
+      </div>
+      <div class="card" style="max-width:480px;">
+        <div class="field"><label>Full name</label><input id="s_name" placeholder="e.g. Ananya Roy"></div>
+        <div class="field"><label>Age</label><input id="s_age" type="number" placeholder="e.g. 15"></div>
+        <div class="field"><label>Email</label><input id="s_email" type="email" placeholder="e.g. ananya@example.com"></div>
+        <div class="field"><label>Roll number</label><input id="s_roll" type="number" placeholder="e.g. 21"></div>
+        <button class="btn gold full" onclick="registerStudent()">Register student</button>
+        <div class="msg" id="s_msg"></div>
+      </div>
+    </section>
+
+    <!-- REGISTER TEACHER -->
+    <section class="panel" id="panel-reg-teacher">
+      <div class="page-head">
+        <div class="eyebrow">New entry</div>
+        <h2>Register a Teacher</h2>
+        <p class="sub">Employee IDs must be unique.</p>
+      </div>
+      <div class="card" style="max-width:480px;">
+        <div class="field"><label>Full name</label><input id="t_name" placeholder="e.g. Rohan Sen"></div>
+        <div class="field"><label>Age</label><input id="t_age" type="number" placeholder="e.g. 34"></div>
+        <div class="field"><label>Email</label><input id="t_email" type="email" placeholder="e.g. rohan@example.com"></div>
+        <div class="field"><label>Subject</label><input id="t_subject" placeholder="e.g. Mathematics"></div>
+        <div class="field"><label>Employee ID</label><input id="t_empid" type="number" placeholder="e.g. 1042"></div>
+        <button class="btn gold full" onclick="registerTeacher()">Register teacher</button>
+        <div class="msg" id="t_msg"></div>
+      </div>
+    </section>
+
+    <!-- ADD GRADE -->
+    <section class="panel" id="panel-add-grade">
+      <div class="page-head">
+        <div class="eyebrow">Gradebook</div>
+        <h2>Add a Grade</h2>
+        <p class="sub">Marks are out of 100. Letter grades are calculated automatically.</p>
+      </div>
+      <div class="card" style="max-width:480px;">
+        <div class="field"><label>Student roll number</label><input id="g_roll" type="number" placeholder="e.g. 21"></div>
+        <div class="field"><label>Subject</label><input id="g_subject" placeholder="e.g. Physics"></div>
+        <div class="field"><label>Marks (0–100)</label><input id="g_marks" type="number" placeholder="e.g. 87"></div>
+        <button class="btn gold full" onclick="addGrade()">Add grade</button>
+        <div class="msg" id="g_msg"></div>
+      </div>
+    </section>
+
+    <!-- STUDENT ROSTER -->
+    <section class="panel" id="panel-students">
+      <div class="page-head">
+        <div class="eyebrow">Records</div>
+        <h2>Student Roster</h2>
+        <p class="sub">Search by name or roll number to open a report card.</p>
+      </div>
+      <div class="field" style="max-width:380px;">
+        <input class="search" id="stu_search" placeholder="Search students…" oninput="renderStudentTable()">
+      </div>
+      <div id="stu_detail"></div>
+      <div class="roster-card">
+        <div class="roster-head"><h3>All students</h3><span class="count-pill" id="stuCountPill">0</span></div>
+        <table>
+          <thead><tr><th>Roll</th><th>Name</th><th>Age</th><th>Email</th><th>Average</th><th></th></tr></thead>
+          <tbody id="stu_table_body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- TEACHER ROSTER -->
+    <section class="panel" id="panel-teachers">
+      <div class="page-head">
+        <div class="eyebrow">Records</div>
+        <h2>Teacher Roster</h2>
+        <p class="sub">Search by name, subject, or employee ID.</p>
+      </div>
+      <div class="field" style="max-width:380px;">
+        <input class="search" id="tea_search" placeholder="Search teachers…" oninput="renderTeacherTable()">
+      </div>
+      <div class="roster-card">
+        <div class="roster-head"><h3>All teachers</h3><span class="count-pill" id="teaCountPill">0</span></div>
+        <table>
+          <thead><tr><th>Emp ID</th><th>Name</th><th>Age</th><th>Email</th><th>Subject</th></tr></thead>
+          <tbody id="tea_table_body"></tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+// ---------- data model (mirrors the Python data dict) ----------
+let data = { Student: [], Teacher: [] };
+
+function validateEmail(email){
+  return email.includes('@') && email.includes('.');
+}
+function letterGrade(pct){
+  if(pct>=90) return 'A';
+  if(pct>=75) return 'B';
+  if(pct>=60) return 'C';
+  return 'F';
+}
+function average(grades){
+  const vals = Object.values(grades);
+  if(!vals.length) return 0;
+  return vals.reduce((a,b)=>a+b,0)/vals.length;
+}
+function showMsg(id, text, ok){
+  const el = document.getElementById(id);
+  el.textContent = text;
+  el.className = 'msg show ' + (ok ? 'ok' : 'err');
+}
+
+// ---------- intro ----------
+function dismissIntro(){
+  document.getElementById('intro').classList.add('hide');
+  document.getElementById('app').classList.add('show');
+}
+setTimeout(dismissIntro, 3400);
+document.getElementById('skipIntro').addEventListener('click', dismissIntro);
+
+// ---------- nav ----------
+document.querySelectorAll('.nav-item').forEach(item=>{
+  item.addEventListener('click', ()=>{
+    document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    item.classList.add('active');
+    document.getElementById('panel-'+item.dataset.panel).classList.add('active');
+    if(item.dataset.panel==='students') renderStudentTable();
+    if(item.dataset.panel==='teachers') renderTeacherTable();
+    if(item.dataset.panel==='dashboard') updateStats();
+  });
+});
+
+// ---------- register student ----------
+function registerStudent(){
+  const name = document.getElementById('s_name').value.trim();
+  const age = parseInt(document.getElementById('s_age').value);
+  const email = document.getElementById('s_email').value.trim();
+  const roll = parseInt(document.getElementById('s_roll').value);
+
+  if(!name || isNaN(age) || !email || isNaN(roll)){
+    showMsg('s_msg','Please fill in every field.', false); return;
+  }
+  if(!validateEmail(email)){ showMsg('s_msg','That email looks invalid.', false); return; }
+  if(data.Student.some(s=>s.roll===roll)){ showMsg('s_msg','A student with that roll number already exists.', false); return; }
+
+  data.Student.push({ name, age, email, roll, grades:{} });
+  showMsg('s_msg', `Student ${name} registered.`, true);
+  ['s_name','s_age','s_email','s_roll'].forEach(id=>document.getElementById(id).value='');
+  updateStats(); renderStudentTable();
+}
+
+// ---------- register teacher ----------
+function registerTeacher(){
+  const name = document.getElementById('t_name').value.trim();
+  const age = parseInt(document.getElementById('t_age').value);
+  const email = document.getElementById('t_email').value.trim();
+  const subject = document.getElementById('t_subject').value.trim();
+  const emp_id = parseInt(document.getElementById('t_empid').value);
+
+  if(!name || isNaN(age) || !email || !subject || isNaN(emp_id)){
+    showMsg('t_msg','Please fill in every field.', false); return;
+  }
+  if(!validateEmail(email)){ showMsg('t_msg','That email looks invalid.', false); return; }
+  if(data.Teacher.some(t=>t.emp_id===emp_id)){ showMsg('t_msg','A teacher with that employee ID already exists.', false); return; }
+
+  data.Teacher.push({ name, age, email, subject, emp_id });
+  showMsg('t_msg', `Teacher ${name} registered.`, true);
+  ['t_name','t_age','t_email','t_subject','t_empid'].forEach(id=>document.getElementById(id).value='');
+  updateStats(); renderTeacherTable();
+}
+
+// ---------- add grade ----------
+function addGrade(){
+  const roll = parseInt(document.getElementById('g_roll').value);
+  const subject = document.getElementById('g_subject').value.trim();
+  const marks = parseFloat(document.getElementById('g_marks').value);
+
+  const student = data.Student.find(s=>s.roll===roll);
+  if(!student){ showMsg('g_msg','No student found with that roll number.', false); return; }
+  if(!subject || isNaN(marks)){ showMsg('g_msg','Please fill in subject and marks.', false); return; }
+
+  student.grades[subject] = marks;
+  showMsg('g_msg', `Added ${subject}: ${marks} for ${student.name}.`, true);
+  ['g_roll','g_subject','g_marks'].forEach(id=>document.getElementById(id).value='');
+  renderStudentTable();
+}
+
+// ---------- stats ----------
+function updateStats(){
+  document.getElementById('statStudents').textContent = data.Student.length;
+  document.getElementById('statTeachers').textContent = data.Teacher.length;
+}
+
+// ---------- student roster + detail ----------
+function renderStudentTable(){
+  const q = (document.getElementById('stu_search')?.value || '').toLowerCase();
+  const body = document.getElementById('stu_table_body');
+  const list = data.Student.filter(s => s.name.toLowerCase().includes(q) || String(s.roll).includes(q));
+  document.getElementById('stuCountPill').textContent = data.Student.length;
+
+  if(!list.length){
+    body.innerHTML = `<tr><td colspan="6" class="empty-row">No students match — try a different search, or register one.</td></tr>`;
+    document.getElementById('stu_detail').innerHTML='';
+    return;
+  }
+
+  body.innerHTML = list.map(s=>{
+    const avg = average(s.grades);
+    const g = letterGrade(avg);
+    return `<tr>
+      <td class="mono">${s.roll}</td>
+      <td>${s.name}</td>
+      <td>${s.age}</td>
+      <td class="mono" style="color:var(--slate);">${s.email}</td>
+      <td>${Object.keys(s.grades).length ? avg.toFixed(1)+'%  <span class="badge '+g+'">'+g+'</span>' : '—'}</td>
+      <td><span class="btn" style="padding:6px 14px; font-size:12px;" onclick="openStudent(${s.roll})">View</span></td>
+    </tr>`;
+  }).join('');
+}
+
+function openStudent(roll){
+  const s = data.Student.find(x=>x.roll===roll);
+  if(!s) return;
+  const avg = average(s.grades);
+  const g = letterGrade(avg);
+  const pct = Math.max(0, Math.min(100, avg));
+  const initial = s.name.trim()[0]?.toUpperCase() || '?';
+
+  const chips = Object.entries(s.grades).map(([subj,mark])=>{
+    const lg = letterGrade(mark);
+    const color = lg==='A' ? 'var(--green)' : lg==='B' ? 'var(--slate)' : lg==='C' ? 'var(--amber)' : 'var(--red)';
+    return `<span class="grade-chip"><span class="dot" style="background:${color}"></span>${subj}: ${mark} (${lg})</span>`;
+  }).join('') || '<span style="color:#a39d87; font-style:italic; font-size:13px;">No grades recorded yet.</span>';
+
+  document.getElementById('stu_detail').innerHTML = `
+    <div class="detail-banner">
+      <div class="avatar-letter">${initial}</div>
+      <div style="flex:1;">
+        <div style="font-family:'Fraunces',serif; font-size:20px;">${s.name}</div>
+        <div style="opacity:0.8; font-size:13px;">Roll ${s.roll} · Age ${s.age} · ${s.email}</div>
+      </div>
+      <div class="avg-ring" style="--pct:${pct}"><span>${Object.keys(s.grades).length ? avg.toFixed(0)+'%' : '—'}</span></div>
+    </div>
+    <div class="card">
+      <h3>Grades</h3>
+      <div>${chips}</div>
+    </div>
+  `;
+}
+
+// ---------- teacher roster ----------
+function renderTeacherTable(){
+  const q = (document.getElementById('tea_search')?.value || '').toLowerCase();
+  const body = document.getElementById('tea_table_body');
+  const list = data.Teacher.filter(t =>
+    t.name.toLowerCase().includes(q) || t.subject.toLowerCase().includes(q) || String(t.emp_id).includes(q)
+  );
+  document.getElementById('teaCountPill').textContent = data.Teacher.length;
+
+  if(!list.length){
+    body.innerHTML = `<tr><td colspan="5" class="empty-row">No teachers match — try a different search, or register one.</td></tr>`;
+    return;
+  }
+
+  body.innerHTML = list.map(t=>`
+    <tr>
+      <td class="mono">${t.emp_id}</td>
+      <td>${t.name}</td>
+      <td>${t.age}</td>
+      <td class="mono" style="color:var(--slate);">${t.email}</td>
+      <td>${t.subject}</td>
+    </tr>
+  `).join('');
+}
+
+updateStats();
+renderStudentTable();
+renderTeacherTable();
+</script>
+
+</body>
+</html>
